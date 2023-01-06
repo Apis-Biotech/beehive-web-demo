@@ -15,4 +15,4 @@ RUN apt-get install -y nodejs
 RUN npm install
 RUN npm install -g ts-node
 
-CMD ["sh", "-c", "ts-node app/app.ts while true; do sleep 60; done" ]
+CMD ["sh", "-c", "ts-node app/app.ts" ]
