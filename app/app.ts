@@ -3,11 +3,15 @@ import path from "path";
 
 const app = express();
 
+// ejs set up
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname + '/static/views'))
+
 
 // Index Page
 app.get('/', function(req, res) {
     res.status(200)
-    res.send('hello world');
+    res.render("index.ejs");
 });
 
 // Set static dir for static resources
