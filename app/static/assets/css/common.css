@@ -1,0 +1,23 @@
+
+body {
+    height: 100%;
+    position: relative;
+}
+
+html {
+    height: 100%;
+}
+
+.wrap {
+    min-height: 100%;
+}
+  
+.main {
+    overflow:auto;
+    padding-bottom: 56px; /* this needs to be bigger than footer height*/
+    min-width: 100%;
+}
+  
+.content-wraper {
+    margin-top: 20px;
+}
