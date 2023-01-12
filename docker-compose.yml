@@ -23,17 +23,13 @@ services:
   
   db:
     image: postgres:15.1-alpine
-    deploy:
-      replicas: 1
-      restart_policy: 
-        condition: on-failure
-
+    restart: always
+    
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=pg-admin
+      POSTGRES_PASSWORD: pg-admin
 
     ports:
-      - '5432:5432'
+      - '6432:5432'
 
     container_name: beehive-db
     tty: true

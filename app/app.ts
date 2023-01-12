@@ -3,8 +3,11 @@ import path from "path";
 
 import {config} from "./config"
 import routes from './routers/web';
+import api_routes from './routers/api';
 
 const app = express();
+
+app.use(express.json());
 
 // ejs set up
 app.set('view engine', 'ejs');
@@ -16,6 +19,7 @@ app.use('/assets', express.static(path.join(__dirname + '/static/assets')))
 
 // set web and api routes
 app.use(routes)
+app.use(api_routes)
 
 
 // Http webserver start

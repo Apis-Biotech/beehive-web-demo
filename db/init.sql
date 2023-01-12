@@ -6,12 +6,12 @@ CREATE TABLE IF NOT EXISTS hives(
 CREATE TABLE IF NOT EXISTS readings(
     id SERIAL PRIMARY KEY,
     hive_id INT REFERENCES hives(id),
-    processed_value REAL
+    processed_value REAL,
+    date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS data_points(
     id  SERIAL PRIMARY KEY,
     reading_id INT REFERENCES readings(id),
-    data_value int NOT NULL,
-    date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    data_value int NOT NULL
 );
