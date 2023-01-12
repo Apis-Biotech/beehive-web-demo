@@ -34,8 +34,10 @@ export async function submitData(req: any, res: any, next: any) {
         const hive_id = hive_resp.rows[0].id
         
         // Process data
-        const hive_data = req.body.data
-        const relative_stress = calculatePercentageIncrease(hive_data, 10, 10)
+        const hive_data: number[] = req.body.data
+        const copy_hive_data: number[]  = Array.from(hive_data)
+
+        const relative_stress = calculatePercentageIncrease(copy_hive_data, 10, 10)
 
 
         // Insert relative stress
@@ -93,7 +95,7 @@ export async function getData(req: any, res: any, next: any) {
         const hive_id = hive_id_resp.rows[0].id
 
         // Get all readings
-        const readings_resp = await client.query("SELECT * FROM readings WHERE hive_id = $1",  [hive_id])
+        const readings_resp = await client.query("SELECT * FROM readings WHERE hive_id = $1  ORDER BY date_added DESC",  [hive_id])
         const readings = readings_resp.rows
 
         var return_data:any = []

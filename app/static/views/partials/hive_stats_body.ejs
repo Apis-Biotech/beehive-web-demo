@@ -1,0 +1,111 @@
+<div class="container-fluid" style="margin-bottom: 2vh;" id="main-container" >
+    <div class="row">
+        <div class="col-12">
+            <table class="table">
+                <!-- table content here -->
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Hive Name</th>
+                            <th>Last Stress Reading</th>
+                            <th>Status</th>
+                            <th>Date of Reading</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Hive 1</td>
+                            <td>20%</td>
+                            <td>Normal</td>
+                            <td>01/01/2023</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div id="chart1">
+                <!-- chart 1 content here -->
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div id="selector">
+                <!-- selector content here -->
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div id="chart2">
+                <!-- chart 2 content here -->
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<script>
+    
+    var stress_data;
+
+    var hive_name = window.location.pathname.split('/').pop();
+
+    function display_error(msg){
+            var main_container = document.getElementById("main-container")
+
+            main_container.innerHTML = `    
+            <div class="row justify-content-center">
+                <div class="col-md-6 text-center">
+                    <div class="alert alert-dismissible alert-danger" style="font-size: xx-large;">
+                        <p class="mb-0">${msg}</p>
+                    </div>
+
+                </div>
+            </div>`
+        }
+
+
+
+    async function load_data(){
+        url = `/api/get-hive-data/${hive_name}`
+
+        var request = await fetch(url)
+        var status_code = request.status
+
+
+
+        if (status_code != 200){
+            display_error("Oops, there was an error connecting to the API")
+            return
+        }
+
+        var responce = await request.json()
+
+        stress_data = responce.data
+    }
+
+    async function render_data(){
+        
+    }
+
+    async function main(){
+        await load_data()
+        await render_data()
+
+    }
+
+    main()
+
+    
+    
+
+</script>
