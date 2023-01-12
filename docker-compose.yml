@@ -20,5 +20,25 @@ services:
     volumes:
       - ./app:/bees/app
 
-    
+  
+  db:
+    image: postgres:15.1-alpine
+    deploy:
+      replicas: 1
+      restart_policy: 
+        condition: on-failure
+
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=pg-admin
+
+    ports:
+      - '5432:5432'
+
+    container_name: beehive-db
+    tty: true
+
+    volumes: 
+      - /var/mysql/bees:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
 

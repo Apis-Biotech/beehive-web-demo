@@ -1,6 +1,9 @@
 import express from "express";
 import path from "path";
 
+import {config} from "./config"
+import routes from './routers/web';
+
 const app = express();
 
 // ejs set up
@@ -8,16 +11,14 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname + '/static/views'))
 
 
-// Index Page
-app.get('/', function(req, res) {
-    res.status(200)
-    res.render("index.ejs");
-});
-
 // Set static dir for static resources
 app.use('/assets', express.static(path.join(__dirname + '/static/assets')))
 
+// set web and api routes
+app.use(routes)
 
-app.listen(80, () => {     
-    console.log( `server started at http://localhost:${80}`);
+
+// Http webserver start
+app.listen(config.http_port, () => {     
+    console.log( `server started at http://localhost:${config.http_port}`);
 });
