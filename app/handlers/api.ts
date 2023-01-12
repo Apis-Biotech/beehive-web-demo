@@ -21,7 +21,7 @@ export async function submitData(req: any, res: any, next: any) {
         const hive_name: string = req.body.hive_name
 
         // Check that this hive name exists in the db
-        const hive_resp = await client.query(`SELECT * FROM hives WHERE hive_name = '${hive_name}';`)
+        const hive_resp = await client.query("SELECT * FROM hives WHERE hive_name = $1;", [hive_name])
         const hive_exists = hive_resp.rows.length > 0
 
         if (!hive_exists){
@@ -37,6 +37,7 @@ export async function submitData(req: any, res: any, next: any) {
         const hive_data = req.body.data
         const relative_stress = calculatePercentageIncrease(hive_data, 10, 10)
 
+
         // Insert relative stress
         let query = "INSERT INTO readings (hive_id, processed_value) VALUES ($1, $2) RETURNING id"
         const reading_resp = await client.query(query, [hive_id, relative_stress])
@@ -45,7 +46,7 @@ export async function submitData(req: any, res: any, next: any) {
         const reading_id = reading_resp.rows[0].id
 
         // Insert all of individual data points
-        for(const data_point in hive_data){
+        for(const data_point of hive_data){
             let query = "INSERT INTO data_points (reading_id, data_value) VALUES ($1, $2)"
             await client.query(query, [reading_id, data_point])
         }
@@ -56,6 +57,72 @@ export async function submitData(req: any, res: any, next: any) {
 
         res.status(200)
         res.send({"msg":"ok", "error": null});
+
+    } catch (error){
+        return next(error)
+    }
+};
+
+
+export async function getData(req: any, res: any, next: any) {
+
+    try{
+
+        const client = new Client({
+            user: config.db_user,
+            host: config.db_host,
+            database: config.db_name,
+            password: config.db_pass,
+            port: config.db_port,
+        })
+        client.connect()
+
+        const hive_name = req.params.name
+
+        // Get hive ID
+        const hive_id_resp = await client.query("SELECT id FROM hives WHERE hive_name = $1", [hive_name])
+
+        const hive_exists = hive_id_resp.rows.length > 0
+
+        if (!hive_exists){
+            res.status(404)
+            res.send({"data":null, "error": "This hive name does not exist in the database"});
+            return
+        }
+
+        const hive_id = hive_id_resp.rows[0].id
+
+        // Get all readings
+        const readings_resp = await client.query("SELECT * FROM readings WHERE hive_id = $1",  [hive_id])
+        const readings = readings_resp.rows
+
+        var return_data:any = []
+
+        for (const reading of readings){
+            const date = reading.date_added
+            const reading_id = reading.id
+            const processed_value = reading.processed_value
+
+            const data_resp = await client.query("SELECT data_value FROM data_points WHERE reading_id = $1",  [reading_id])
+            const data_rows = data_resp.rows
+
+            const data_points = data_rows.map((row) => row.data_value);
+            
+            
+
+            return_data.push({
+                                "relative_value": processed_value, 
+                                "date": date,
+                                "data_points": data_points
+                            })
+        }
+
+
+
+        await client.end()
+
+        res.status(200)
+        res.send({"data":return_data, "error": null});
 
     } catch (error){
         return next(error)

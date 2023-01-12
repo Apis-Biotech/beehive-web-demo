@@ -1,4 +1,7 @@
 export function calculatePercentageIncrease(data: number[], xSmallest: number, xLargest: number): number {
+
+    console.log(data)
+
     // Sort the data in ascending order
     data.sort((a, b) => a - b);
 
@@ -7,7 +10,7 @@ export function calculatePercentageIncrease(data: number[], xSmallest: number, x
     const avgSmallest = smallestValues.reduce((a, b) => a + b) / xSmallest;
     const avgLargest = largestValues.reduce((a, b) => a + b) / xLargest;
   
-    const percentageIncrease = ((avgLargest - avgSmallest) / avgSmallest);
+    const percentageIncrease = ((avgLargest - avgSmallest) / avgLargest);
 
     return percentageIncrease;
 }

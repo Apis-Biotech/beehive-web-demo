@@ -4,8 +4,8 @@ import * as handlers from "../handlers/api"
 const router = Router();
 
 
-// Index Page
 router.post('/api/submit-data', handlers.submitData)
+router.get('/api/get-hive-data/:name', handlers.getData)
 
 
 export default router

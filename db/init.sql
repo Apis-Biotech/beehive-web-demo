@@ -13,5 +13,5 @@ CREATE TABLE IF NOT EXISTS readings(
 CREATE TABLE IF NOT EXISTS data_points(
     id  SERIAL PRIMARY KEY,
     reading_id INT REFERENCES readings(id),
-    data_value int NOT NULL
+    data_value REAL NOT NULL
 );
