@@ -1,12 +1,12 @@
 <style>
     td, th {
     text-align: center;
-    font-size: 1vw;
+    font-size: 1.2vw;
     }
 
-    @media (max-width: 1920px) {
+    @media (max-width: 720px) {
         td, th{
-            font-size: 25px;
+            font-size: 15px;
         }
     }
 
@@ -245,7 +245,7 @@
                             },
                             ticks: {
                                 display: false,
-                                fontSize: 18,
+                                fontSize: 12,
                                 autoSkip: true,
                                 maxRotation: 0,
                                 padding: 10,
@@ -253,9 +253,9 @@
 
                             },
                             scaleLabel: {
-                                display: true,
+                                display: false,
                                 labelString: 'Time',
-                                fontSize: 22
+                                fontSize: 20
                             }
                         }],
                         yAxes: [{
@@ -263,12 +263,14 @@
                                 display: false
                             },
                             ticks: {
-                                fontSize: 18
+                                fontSize: 12,
+                                autoSkip: true,
+                                maxTicksLimit: 5
                             },
                             scaleLabel: {
-                                display: true,
+                                display: false,
                                 labelString: 'Stress',
-                                fontSize: 22
+                                fontSize: 20
                             }
                         }]
                     },
@@ -338,7 +340,7 @@
                                 display: false
                             },
                             ticks: {
-                                fontSize: 18
+                                fontSize: 12
                             }
                         }],
                         yAxes: [{
@@ -346,7 +348,8 @@
                                 display: false
                             },
                             ticks: {
-                                fontSize: 18
+                                fontSize: 12,
+                                maxTicksLimit: 5
                             }
                         }]
                     },
