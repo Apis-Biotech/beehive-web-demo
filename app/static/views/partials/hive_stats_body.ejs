@@ -1,52 +1,68 @@
-<div class="container-fluid" style="margin-bottom: 2vh;" id="main-container" >
-    <div class="row">
-        <div class="col-12">
-            <table class="table">
-                <!-- table content here -->
+<style>
+    td, th {
+    text-align: center;
+    font-size: 1vw;
+    }
 
+    @media (max-width: 1920px) {
+        td, th{
+            font-size: 20px;
+        }
+    }
+</style>
+
+<div class="container-fluid" style="margin-bottom: 2vh;" id="main-container" >
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2 col-12" >
                 <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Hive Name</th>
-                            <th>Last Stress Reading</th>
-                            <th>Status</th>
-                            <th>Date of Reading</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Hive 1</td>
-                            <td>20%</td>
-                            <td>Normal</td>
-                            <td>01/01/2023</td>
-                        </tr>
-                    </tbody>
+                    <table class="table">
+                        <thead>
+                            <tr style="text-align: center">
+                                <th>Hive Name</th>
+                                <th>Latest Stress</th>
+                                <th>Status</th>
+                                <th>Date of Latest Stress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="tb-hive-name">Hive 1</td>
+                                <td id="tb-hive-stress">20%</td>
+                                <td id="tb-hive-condition">Normal</td>
+                                <td id="tb-data-date">01/01/2023</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
                 </table>
-                
-            </table>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-12">
-            <div id="chart1">
-                <!-- chart 1 content here -->
+        <div class="row">
+            <div class="col-md-8 offset-md-2 col-12" >
+                <div id="chart1">
+                    <!-- chart 1 content here -->
+                    <canvas id="chart-1" ></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-2 offset-lg-5 col-12">
+                <div id="selector">
+                    <!-- selector content here -->
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8 offset-md-2 col-12">
+                <div id="chart2">
+                    <!-- chart 2 content here -->
+                    <canvas id="chart-2"></canvas>
+                </div>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-12">
-            <div id="selector">
-                <!-- selector content here -->
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-12">
-            <div id="chart2">
-                <!-- chart 2 content here -->
-            </div>
-        </div>
-    </div>
+    
 
 </div>
 
@@ -56,8 +72,17 @@
 <script>
     
     var stress_data;
+    var reading_selector = 0
 
     var hive_name = window.location.pathname.split('/').pop();
+
+    var ctx1 = document.getElementById("chart-1").getContext("2d");
+    var chart_1_drawn = false
+    var chart1;
+
+    var ctx = document.getElementById("chart-2").getContext("2d");
+    var chart_2_drawn = false
+    var chart2
 
     function display_error(msg){
             var main_container = document.getElementById("main-container")
@@ -71,11 +96,24 @@
 
                 </div>
             </div>`
-        }
+    }
+
+    function format_date(dateString){
+        let date = new Date(dateString);
+        let dateOptions = { day: "numeric", month: "short" };
+        let timeOptions = { hour: "numeric", minute: "numeric" };
+        let formattedDate = date.toLocaleDateString("en-US", dateOptions);
+        let formattedTime = date.toLocaleTimeString("en-US", timeOptions);
+        let finalString = `${formattedDate} ${formattedTime}`;
+
+        return finalString
+    }
 
 
 
     async function load_data(){
+        stress_data = null
+
         url = `/api/get-hive-data/${hive_name}`
 
         var request = await fetch(url)
@@ -90,12 +128,175 @@
 
         var responce = await request.json()
 
-        stress_data = responce.data
+        if (responce.data.length == 0){
+            stress_data = null
+        } else {
+            stress_data = responce.data
+        }
+
+        
+    }
+
+    function update_table(){
+        var table_hive_name = document.getElementById("tb-hive-name")
+        var table_hive_stress = document.getElementById("tb-hive-stress")
+        var table_hive_condition = document.getElementById("tb-hive-condition")
+        var table_data_date = document.getElementById("tb-data-date")
+
+        table_hive_name.innerHTML = hive_name
+
+        // Update the table
+        if(stress_data == null){
+            table_hive_stress.innerHTML = "No DATA"
+            table_hive_condition = "No DATA"
+            table_data_date = "No DATA"
+
+        } else {
+            let latest = stress_data[0]
+            let relative_stress = latest.relative_value
+            let date = latest.date
+
+            let color = (relative_stress >= 0.7) ? "red" : (relative_stress >= 0.4) ? "orange" : "green";
+            let condition = (relative_stress >= 0.7) ? "High Stress" : (relative_stress >= 0.4) ? "Medium Stress" : "Healthy";
+
+            table_hive_stress.innerHTML = relative_stress
+            table_hive_condition.innerHTML = condition
+            table_hive_condition.style.color = color
+
+            table_data_date.innerHTML = format_date(date)
+        }
+
+    }
+    
+    function update_chart_1(){
+        var y_data = stress_data.map(obj => obj.relative_value)
+        y_data = y_data.reverse()
+
+        var x_data = Object.keys(y_data);
+
+        if (chart_1_drawn){
+            chart1.data.datasets[0].data = y_data;
+            chart1.data.label = x_data
+            chart1.update();
+
+        } else {
+            chart1 = new Chart(ctx1, {
+                type: "line",
+                data: {
+                    labels: x_data,
+                    datasets: [{
+                        label: "Relative Stress",
+                        data: y_data,
+                        backgroundColor: "rgba(75, 192, 192, 0.2)",
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        xAxes: [{
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                fontSize: 18
+                            }
+                        }],
+                        yAxes: [{
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                fontSize: 18
+                            }
+                        }]
+                    },
+
+                    animation: {
+                        duration: 0,
+                        easing: "linear",
+
+                    }
+
+                }
+            });
+
+            chart_1_drawn = true
+
+        }
+
+    }
+
+    function update_chart_2(){
+        // Update per reading chart (chart 2)
+        var y_data = stress_data[reading_selector].data_points
+        var x_data = Object.keys(y_data);
+
+        if (chart_2_drawn){
+            chart2.data.datasets[0].data = y_data;
+            chart2.data.label = x_data
+            chart2.update();
+
+        } else {
+            chart2 = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: x_data,
+                    datasets: [{
+                        label: "Absorbtion",
+                        data: y_data,
+                        backgroundColor: "rgba(75, 192, 192, 0.2)",
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        xAxes: [{
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                fontSize: 18
+                            }
+                        }],
+                        yAxes: [{
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                fontSize: 18
+                            }
+                        }]
+                    },
+
+                    animation: {
+                        duration: 0,
+                        easing: "linear",
+
+                    }
+
+                }
+            });
+
+            chart_2_drawn = true
+        }
+
     }
 
     async function render_data(){
+        update_table()
+        update_chart_1()
+        update_chart_2()
         
+ 
     }
+
+    
 
     async function main(){
         await load_data()

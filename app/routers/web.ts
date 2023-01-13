@@ -6,6 +6,7 @@ const router = Router();
 
 // Index Page
 router.get('/', handlers.indexPage)
+router.get('/hive-stats/:hive_name', handlers.hiveStats)
 
 
 export default router
