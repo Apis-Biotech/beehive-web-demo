@@ -6,9 +6,34 @@
 
     @media (max-width: 1920px) {
         td, th{
-            font-size: 20px;
+            font-size: 25px;
         }
     }
+
+    .lds-dual-ring {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+}
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 32px;
+  height: 32px;
+  margin: 4px;
+  border-radius: 50%;
+  border: 6px solid rgb(21, 169, 43);
+  border-color: rgb(21, 169, 43) transparent rgb(21, 169, 43) transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 </style>
 
 <div class="container-fluid" style="margin-bottom: 2vh;" id="main-container" >
@@ -27,10 +52,10 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td id="tb-hive-name">Hive 1</td>
-                                <td id="tb-hive-stress">20%</td>
-                                <td id="tb-hive-condition">Normal</td>
-                                <td id="tb-data-date">01/01/2023</td>
+                                <td id="tb-hive-name"></td>
+                                <td id="tb-hive-stress"></td>
+                                <td id="tb-hive-condition"></td>
+                                <td id="tb-data-date"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -38,27 +63,33 @@
                 </table>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-8 offset-md-2 col-12" >
-                <div id="chart1">
+        <div class="row" style="margin-top: 5vh;">
+            <div class="col-md-8 offset-md-2 col-12">
+                <h1 style="display: inline-block; vertical-align: middle;">Relative stress history</h1>
+                <div style="display: inline-block; vertical-align: middle; margin-left: 8px;" class="lds-dual-ring" id="animation"></div>
+                <div id="chart1" style="margin-top: 1vh;">
                     <!-- chart 1 content here -->
                     <canvas id="chart-1" ></canvas>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-lg-2 offset-lg-5 col-12">
-                <div id="selector">
-                    <!-- selector content here -->
-                </div>
-            </div>
-        </div>
-        <div class="row">
+        <div class="row" style="margin-top: 5vh;">
             <div class="col-md-8 offset-md-2 col-12">
-                <div id="chart2">
+                <h1>Absorbtion</h1>
+                <select class="form-control" onchange="changeChart2(this.value)" style="max-width: 250px; margin-top: 1vh; margin-bottom: 1vh; margin-right: 5px;" id="selector"></select>
+                
+                <h4 id="chart-2-label" style="margin-top: 3vh;"></h4>
+                <div id="chart2" style="margin-top: 2vh;">
                     <!-- chart 2 content here -->
                     <canvas id="chart-2"></canvas>
                 </div>
+
+                 
+
+                
+            
+
+                
             </div>
         </div>
     </div>
@@ -73,6 +104,7 @@
     
     var stress_data;
     var reading_selector = 0
+    var prev_dates = []
 
     var hive_name = window.location.pathname.split('/').pop();
 
@@ -82,7 +114,9 @@
 
     var ctx = document.getElementById("chart-2").getContext("2d");
     var chart_2_drawn = false
-    var chart2
+    var chart2;
+
+    var animation = document.getElementById("animation");
 
     function display_error(msg){
             var main_container = document.getElementById("main-container")
@@ -148,16 +182,16 @@
         // Update the table
         if(stress_data == null){
             table_hive_stress.innerHTML = "No DATA"
-            table_hive_condition = "No DATA"
-            table_data_date = "No DATA"
+            table_hive_condition.innerHTML = "No DATA"
+            table_data_date.innerHTML = "No DATA"
 
         } else {
             let latest = stress_data[0]
             let relative_stress = latest.relative_value
             let date = latest.date
 
-            let color = (relative_stress >= 0.7) ? "red" : (relative_stress >= 0.4) ? "orange" : "green";
-            let condition = (relative_stress >= 0.7) ? "High Stress" : (relative_stress >= 0.4) ? "Medium Stress" : "Healthy";
+            let color = (relative_stress >= 0.75) ? "red" : (relative_stress >= 0.4) ? "orange" : "green";
+            let condition = (relative_stress >= 0.75) ? "High Stress" : (relative_stress >= 0.4) ? "Medium Stress" : "Healthy";
 
             table_hive_stress.innerHTML = relative_stress
             table_hive_condition.innerHTML = condition
@@ -169,14 +203,23 @@
     }
     
     function update_chart_1(){
-        var y_data = stress_data.map(obj => obj.relative_value)
-        y_data = y_data.reverse()
 
-        var x_data = Object.keys(y_data);
+        if (stress_data != null){
+
+            var y_data = stress_data.map(obj => obj.relative_value)
+            y_data = y_data.reverse()
+
+            //var x_data = Object.keys(y_data);
+            var x_data = stress_data.map(obj => format_date(obj.date))
+
+        } else{
+            var y_data = []
+            var x_data = []
+        }
 
         if (chart_1_drawn){
             chart1.data.datasets[0].data = y_data;
-            chart1.data.label = x_data
+            chart1.data.labels = x_data
             chart1.update();
 
         } else {
@@ -201,7 +244,18 @@
                                 display: false
                             },
                             ticks: {
-                                fontSize: 18
+                                display: false,
+                                fontSize: 18,
+                                autoSkip: true,
+                                maxRotation: 0,
+                                padding: 10,
+                                maxTicksLimit: 3
+
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Time',
+                                fontSize: 22
                             }
                         }],
                         yAxes: [{
@@ -210,6 +264,11 @@
                             },
                             ticks: {
                                 fontSize: 18
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Stress',
+                                fontSize: 22
                             }
                         }]
                     },
@@ -230,13 +289,31 @@
     }
 
     function update_chart_2(){
-        // Update per reading chart (chart 2)
-        var y_data = stress_data[reading_selector].data_points
-        var x_data = Object.keys(y_data);
+
+        if(stress_data != null){
+
+            // Update per reading chart (chart 2)
+            var y_data = stress_data[reading_selector].data_points
+            var x_data = Object.keys(y_data);
+
+            let relative_stress = stress_data[reading_selector].relative_value
+
+            var stress_label = document.getElementById("chart-2-label")
+            stress_label.innerHTML = `Stress Level: ${relative_stress}`
+            stress_label.style.color = (relative_stress >= 0.75) ? "red" : (relative_stress >= 0.4) ? "orange" : "green";
+
+        } else{
+            var y_data = []
+            var x_data = []
+
+            var stress_label = document.getElementById("chart-2-label")
+            stress_label.innerHTML = `N/A`
+            stress_label.style.color = "black"
+        }
 
         if (chart_2_drawn){
             chart2.data.datasets[0].data = y_data;
-            chart2.data.label = x_data
+            chart2.data.labels = x_data
             chart2.update();
 
         } else {
@@ -285,28 +362,75 @@
 
             chart_2_drawn = true
         }
-
     }
 
-    async function render_data(){
+    function update_chart_selector(){
+        var selector = document.getElementById("selector")
+        
+        
+
+        if (stress_data != null){
+            var dates = stress_data.map(obj => obj.date)
+
+            if (prev_dates.length != dates.length){
+            
+                selector.innerHTML = ``
+
+                for(i in dates){
+                    var str_date = format_date(dates[i])
+                    selector.innerHTML += `<option value="${i}">${str_date}</option>`
+                }
+
+                if (prev_dates.length == 0){
+                    reading_selector = 0
+                    update_chart_2()
+                }
+
+                prev_dates = dates
+
+            }
+        } else {
+            selector.innerHTML = `<option value="">NO DATA</option>`
+
+            if (prev_dates.length != 0){
+                    update_chart_2()
+            }
+
+            prev_dates = []
+        }
+    }
+    
+
+    function changeChart2(id){
+        reading_selector = id
+        update_chart_2()
+    
+    }
+
+    async function initial_render(){
         update_table()
         update_chart_1()
         update_chart_2()
-        
- 
+        update_chart_selector()
     }
 
-    
-
-    async function main(){
+    async function init_data(){
         await load_data()
-        await render_data()
-
+        await initial_render()
     }
 
-    main()
+    async function update_loop(){
+        await load_data()
 
-    
-    
+        update_table()
+        update_chart_1()
+        update_chart_selector()
+
+        setTimeout(update_loop, 1000);
+    }
+
+    init_data()
+
+    setTimeout(update_loop, 1000);
 
 </script>
