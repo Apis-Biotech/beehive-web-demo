@@ -18,8 +18,19 @@ app.set('views', path.join(__dirname + '/static/views'))
 app.use('/assets', express.static(path.join(__dirname + '/static/assets')))
 
 // set web and api routes
-app.use(routes)
 app.use(api_routes)
+app.use(routes)
+
+app.use(function(req, res, next) {
+    if (!req.path.includes('/hive-stats/')) {
+        res.redirect("/hive-stats/test1")
+      
+    } else {
+      next();
+    }
+  });
+
+
 
 
 // Http webserver start
