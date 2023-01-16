@@ -52,8 +52,8 @@ export async function submitData(req: any, res: any, next: any) {
 
         } else {
 
-            let query = "SELECT id from readings limit 1 order by id dec"
-            const query_resp = await client.query(query, [hive_id, 0])
+            let query = "SELECT id FROM readings ORDER BY id DESC"
+            const query_resp = await client.query(query)
 
             reading_id = query_resp.rows[0].id
 
