@@ -63,16 +63,16 @@
                 </table>
             </div>
         </div>
-        <!-- <div class="row" style="margin-top: 5vh;">
+        <div class="row" style="margin-top: 5vh;">
             <div class="col-md-8 offset-md-2 col-12">
                 <h1 style="display: inline-block; vertical-align: middle;">Relative stress history</h1>
                 <div style="display: inline-block; vertical-align: middle; margin-left: 8px;" class="lds-dual-ring" id="animation"></div>
                 <div id="chart1" style="margin-top: 1vh;">
-                
+                    <!-- chart 1 content here -->
                     <canvas id="chart-1" ></canvas>
                 </div>
             </div>
-        </div> -->
+        </div>
         <div class="row" style="margin-top: 5vh;">
             <div class="col-md-8 offset-md-2 col-12">
                 <h1>Absorbtion</h1>
@@ -108,9 +108,9 @@
 
     var hive_name = window.location.pathname.split('/').pop();
 
-    // var ctx1 = document.getElementById("chart-1").getContext("2d");
-    // var chart_1_drawn = false
-    // var chart1;
+    var ctx1 = document.getElementById("chart-1").getContext("2d");
+    var chart_1_drawn = false
+    var chart1;
 
     var ctx = document.getElementById("chart-2").getContext("2d");
     var chart_2_drawn = false
@@ -412,7 +412,7 @@
 
     async function initial_render(){
         update_table()
-        //update_chart_1()
+        update_chart_1()
         update_chart_2()
         update_chart_selector()
     }
@@ -426,7 +426,7 @@
         await load_data()
 
         update_table()
-        //update_chart_1()
+        update_chart_1()
         update_chart_selector()
 
         setTimeout(update_loop, 1000);
