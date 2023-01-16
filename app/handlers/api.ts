@@ -34,24 +34,33 @@ export async function submitData(req: any, res: any, next: any) {
         const hive_id = hive_resp.rows[0].id
         
         // Process data
-        const hive_data: number[] = req.body.data
-        const copy_hive_data: number[]  = Array.from(hive_data)
+        // const hive_data: number[] = req.body.data
+        // const copy_hive_data: number[]  = Array.from(hive_data)
 
-        const relative_stress = calculatePercentageIncrease(copy_hive_data, 10, 10)
+        // const relative_stress = calculatePercentageIncrease(copy_hive_data, 10, 10)
 
+        var reading_id: number;
 
-        // Insert relative stress
-        let query = "INSERT INTO readings (hive_id, processed_value) VALUES ($1, $2) RETURNING id"
-        const reading_resp = await client.query(query, [hive_id, relative_stress])
+        if (req.body.new_reading){
 
-        // Get the generated id for the reading
-        const reading_id = reading_resp.rows[0].id
+            // Insert relative stress
+            let query = "INSERT INTO readings (hive_id, processed_value) VALUES ($1, $2) RETURNING id"
+            const reading_resp = await client.query(query, [hive_id, 0])
 
-        // Insert all of individual data points
-        for(const data_point of hive_data){
-            let query = "INSERT INTO data_points (reading_id, data_value) VALUES ($1, $2)"
-            await client.query(query, [reading_id, data_point])
+            // Get the generated id for the reading
+            reading_id = reading_resp.rows[0].id
+
+        } else {
+
+            let query = "SELECT id from readings limit 1 order by id dec"
+            const query_resp = await client.query(query, [hive_id, 0])
+
+            reading_id = query_resp.rows[0].id
+
         }
+
+        let query = "INSERT INTO data_points (reading_id, data_value) VALUES ($1, $2)"
+        await client.query(query, [reading_id, req.body.data_point])
 
         console.log("Data inserted")
 
