@@ -15,3 +15,9 @@ CREATE TABLE IF NOT EXISTS data_points(
     reading_id INT REFERENCES readings(id),
     data_value REAL NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS heart_beat(
+    id  SERIAL PRIMARY KEY,
+    hive_id INT REFERENCES hives(id),
+    date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

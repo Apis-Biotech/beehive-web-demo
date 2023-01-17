@@ -152,8 +152,14 @@ export async function getData(req: any, res: any, next: any) {
             // Map 600 to 1 and 900 to 0
 
             var mapped_data_points = data_points.map((value) => {
-                return (value - 600) / 300
+                let scaled = (value - 600) / 300;
+                return 1 - scaled;
             })
+
+
+            // var mapped_data_points = data_points.map((value) => {
+            //     return ((1024 - value) / 1024)
+            // })
             
             // smooth the data in data_points with a 3 point moving 
             var smoothed_data_points = mapped_data_points.map((value, index, array) => {
@@ -199,3 +205,92 @@ export async function getData(req: any, res: any, next: any) {
         return next(error)
     }
 };
+
+export async function submitHeartbeat(req: any, res: any, next: any) {
+
+    try{
+
+        const client = new Client({
+            user: config.db_user,
+            host: config.db_host,
+            database: config.db_name,
+            password: config.db_pass,
+            port: config.db_port,
+        })
+        client.connect()
+
+
+        const hive_name: string = req.body.hive_name
+
+        // Check that this hive name exists in the db
+        const hive_resp = await client.query("SELECT * FROM hives WHERE hive_name = $1;", [hive_name])
+        const hive_exists = hive_resp.rows.length > 0
+
+        if (!hive_exists){
+            res.status(404)
+            res.send({"msg":null, "error": "This hive does not exist in the database"});
+            return
+        }
+
+        // Get hive id
+        const hive_id = hive_resp.rows[0].id
+        
+
+        
+        // Insert heartbeat into hearbeats table
+        const query = "INSERT INTO heart_beat (hive_id) VALUES ($1)"
+        await client.query(query, [hive_id])
+
+        console.log(`Heartbeat inserted for ${hive_name}`)
+
+        await client.end()
+
+        res.status(200)
+        res.send({"msg":"ok", "error": null});
+
+    } catch (error){
+        return next(error)
+    }
+};
+
+export async function getLastHeartbeat(req: any, res: any, next: any) {
+
+    try{
+
+        const client = new Client({
+            user: config.db_user,
+            host: config.db_host,
+            database: config.db_name,
+            password: config.db_pass,
+            port: config.db_port,
+        })
+        client.connect()
+
+
+        const hive_name: string = req.param.hive_name
+
+        // select heartbeats for this hive
+        const query = "SELECT * FROM heart_beat WHERE hive_id = (SELECT id FROM hives WHERE hive_name = $1) ORDER BY date_added DESC"
+        const q_resp = await client.query(query, [hive_name])
+
+        const heartbeats = q_resp.rows
+
+        if (heartbeats.length == 0){
+            res.status(200)
+            res.send({"msg": null, "error": null});
+
+        } else {
+            const last_heartbeat = heartbeats[0].date_added
+            res.status(200)
+            res.send({"msg": last_heartbeat, "error": null});
+        }
+
+
+        await client.end()
+
+    } catch (error){
+        return next(error)
+    }
+};
+
+
