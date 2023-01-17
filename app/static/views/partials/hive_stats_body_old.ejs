@@ -190,8 +190,8 @@
             let relative_stress = latest.relative_value
             let date = latest.date
 
-            let color = (relative_stress >= 0.75) ? "red" : (relative_stress >= 0.4) ? "orange" : "green";
-            let condition = (relative_stress >= 0.75) ? "High Stress" : (relative_stress >= 0.4) ? "Medium Stress" : "Healthy";
+            let color = (relative_stress >= 0.70) ? "red" : (relative_stress >= 0.60) ? "orange" : "green";
+            let condition = (relative_stress >= 0.70) ? "High Stress" : (relative_stress >= 0.60) ? "Medium Stress" : "Healthy";
 
             table_hive_stress.innerHTML = relative_stress
             table_hive_condition.innerHTML = condition
@@ -302,7 +302,7 @@
 
             var stress_label = document.getElementById("chart-2-label")
             stress_label.innerHTML = `Stress Level: ${relative_stress}`
-            stress_label.style.color = (relative_stress >= 0.75) ? "red" : (relative_stress >= 0.4) ? "orange" : "green";
+            stress_label.style.color = (relative_stress >= 0.70) ? "red" : (relative_stress >= 0.60) ? "orange" : "green";
 
         } else{
             var y_data = []

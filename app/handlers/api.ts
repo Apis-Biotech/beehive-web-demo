@@ -118,13 +118,73 @@ export async function getData(req: any, res: any, next: any) {
             const data_rows = data_resp.rows
 
             const data_points = data_rows.map((row) => row.data_value);
+
+
+
+
+            // remove any spikes in the data, a spike is any data point that is more than 50% bigger than 
+            // datapoint to the right or left
+
+            //var no_spikes_data_points: number[] = data_points
+
+            //var no_spikes_data_points: number[] = []
+
+            // for (var i = 0; i < data_points.length; i++){
+            //     var data: number = data_points[i]
+                
+            //     if (i == 0){
+            //         if (data < data_points[i + 1] * 1.5){
+            //             no_spikes_data_points.push(data)
+            //         }
+            //     } else if (i == data_points.length - 1){
+            //         if (data < data_points[i - 1] * 1.5){
+            //             no_spikes_data_points.push(data)
+            //         }
+            //     } else {
+            //         if (data < data_points[i - 1] * 1.5 && data < data_points[i + 1] * 1.5){
+            //             no_spikes_data_points.push(data)
+            //         }
+            //     }
+
+            // }
+
+
+            // Map 600 to 1 and 900 to 0
+
+            var mapped_data_points = data_points.map((value) => {
+                return (value - 600) / 300
+            })
             
+            // smooth the data in data_points with a 3 point moving 
+            var smoothed_data_points = mapped_data_points.map((value, index, array) => {
+                if (index == 0){
+                    return (value + array[index + 1]) / 2
+                } else if (index == array.length - 1){
+                    return (value + array[index - 1]) / 2    
+                } else {
+                    return (value + array[index - 1] + array[index + 1]) / 3 
+                }
+
+            })
+
+            // find average of data_points
+            const average = smoothed_data_points.reduce((a, b) => a + b, 0) / smoothed_data_points.length
+
+            // round average to 3 decimal places
+            const rounded_average = Math.round(average * 1000) / 1000
+
+            //round all data in smoothed_data_points to 3 decimal places
+            var rounded_data_points =  smoothed_data_points.map(ele => ele.toFixed(3));
             
 
+
+                
+
+
             return_data.push({
-                                "relative_value": processed_value, 
+                                "relative_value": rounded_average, 
                                 "date": date,
-                                "data_points": data_points
+                                "data_points": rounded_data_points,
                             })
         }
 

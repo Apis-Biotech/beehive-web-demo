@@ -45,7 +45,7 @@
                         <thead>
                             <tr style="text-align: center">
                                 <th>Hive Name</th>
-                                <th>Latest Stress</th>
+                                <th>Latest Reading</th>
                                 <th>Status</th>
                                 <th>Date of Latest Stress</th>
                             </tr>
@@ -187,11 +187,11 @@
 
         } else {
             let latest = stress_data[0]
-            let relative_stress = latest.relative_value
+            let relative_stress = latest.data_points[latest.data_points.length - 1]
             let date = latest.date
 
-            let color = (relative_stress >= 0.75) ? "red" : (relative_stress >= 0.4) ? "orange" : "green";
-            let condition = (relative_stress >= 0.75) ? "High Stress" : (relative_stress >= 0.4) ? "Medium Stress" : "Healthy";
+            let color = (relative_stress >= 0.70) ? "red" : (relative_stress >= 0.60) ? "orange" : "green";
+            let condition = (relative_stress >= 0.70) ? "High Stress" : (relative_stress >= 0.60) ? "Medium Stress" : "Healthy";
 
             table_hive_stress.innerHTML = relative_stress
             table_hive_condition.innerHTML = condition
@@ -301,8 +301,8 @@
             let relative_stress = stress_data[reading_selector].relative_value
 
             var stress_label = document.getElementById("chart-2-label")
-            stress_label.innerHTML = `Stress Level: ${relative_stress}`
-            stress_label.style.color = (relative_stress >= 0.75) ? "red" : (relative_stress >= 0.4) ? "orange" : "green";
+            stress_label.innerHTML = `Avg Stress Level: ${relative_stress}`
+            stress_label.style.color = (relative_stress >= 0.70) ? "red" : (relative_stress >= 0.60) ? "orange" : "green";
 
         } else{
             var y_data = []
@@ -349,7 +349,9 @@
                             },
                             ticks: {
                                 fontSize: 12,
-                                maxTicksLimit: 5
+                                maxTicksLimit: 5,
+                                max:1,
+                                min:0
                             }
                         }]
                     },
