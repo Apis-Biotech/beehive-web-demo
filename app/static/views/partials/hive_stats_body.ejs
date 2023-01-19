@@ -103,6 +103,7 @@
 <script>
     
     var stress_data;
+    var last_heartbeat;
     var reading_selector = 0
     var prev_dates = []
 
@@ -164,8 +165,10 @@
 
         if (responce.data.length == 0){
             stress_data = null
+            last_heartbeat = null
         } else {
             stress_data = responce.data
+            last_heartbeat = responce.last_heartbeat
         }
 
         
@@ -190,8 +193,14 @@
             let relative_stress = latest.data_points[latest.data_points.length - 1]
             let date = latest.date
 
-            let color = (relative_stress >= 0.70) ? "red" : (relative_stress >= 0.60) ? "orange" : "green";
-            let condition = (relative_stress >= 0.70) ? "High Stress" : (relative_stress >= 0.60) ? "Medium Stress" : "Healthy";
+            // Calculate time since last_heartbeat in seconds
+            let now = new Date()
+            let last_heartbeat_date = new Date(last_heartbeat)
+            let time_since_last_heartbeat = now - last_heartbeat_date
+            time_since_last_heartbeat = Math.round(time_since_last_heartbeat / 1000)
+
+            let color = (time_since_last_heartbeat >= 70) ? "red" : (time_since_last_heartbeat >= 61) ? "orange" : "green";
+            let condition = (time_since_last_heartbeat >= 70) ? "Offline" : (time_since_last_heartbeat >= 61) ? "Awaiting heartbeat" : "Online";
 
             table_hive_stress.innerHTML = relative_stress
             table_hive_condition.innerHTML = condition

@@ -181,6 +181,21 @@ export async function getData(req: any, res: any, next: any) {
 
             //round all data in smoothed_data_points to 3 decimal places
             var rounded_data_points =  smoothed_data_points.map(ele => ele.toFixed(3));
+
+            // select heartbeats for this hive
+            const query = "SELECT * FROM heart_beat WHERE hive_id = $1 ORDER BY date_added DESC"
+            const q_resp = await client.query(query, [hive_id])
+
+            const heartbeats = q_resp.rows
+
+            var last_heartbeat: any;
+
+            if (heartbeats.length == 0){
+                last_heartbeat = null
+
+            } else {
+                last_heartbeat = heartbeats[0].date_added
+            }
             
 
 
@@ -190,7 +205,7 @@ export async function getData(req: any, res: any, next: any) {
             return_data.push({
                                 "relative_value": rounded_average, 
                                 "date": date,
-                                "data_points": rounded_data_points,
+                                "data_points": rounded_data_points
                             })
         }
 
@@ -199,7 +214,7 @@ export async function getData(req: any, res: any, next: any) {
         await client.end()
 
         res.status(200)
-        res.send({"data":return_data, "error": null});
+        res.send({"data":return_data, "error": null, "last_heartbeat": last_heartbeat});
 
     } catch (error){
         return next(error)
@@ -267,11 +282,24 @@ export async function getLastHeartbeat(req: any, res: any, next: any) {
         client.connect()
 
 
-        const hive_name: string = req.param.hive_name
+        const hive_name: string = req.params.name
+
+        // Check that this hive name exists in the db
+        const hive_resp = await client.query("SELECT * FROM hives WHERE hive_name = $1;", [hive_name])
+        const hive_exists = hive_resp.rows.length > 0
+
+        if (!hive_exists){
+            res.status(404)
+            res.send({"msg":null, "error": "This hive does not exist in the database"});
+            return
+        }
+
+        // Get hive id
+        const hive_id = hive_resp.rows[0].id
 
         // select heartbeats for this hive
-        const query = "SELECT * FROM heart_beat WHERE hive_id = (SELECT id FROM hives WHERE hive_name = $1) ORDER BY date_added DESC"
-        const q_resp = await client.query(query, [hive_name])
+        const query = "SELECT * FROM heart_beat WHERE hive_id = $1 ORDER BY date_added DESC"
+        const q_resp = await client.query(query, [hive_id])
 
         const heartbeats = q_resp.rows
 
